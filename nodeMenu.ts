@@ -35,9 +35,9 @@ export default function (mind: MindElixirInstance) {
   console.log('install node menu')
   function clearSelect(klass, remove) {
     const elems = mind.container.querySelectorAll(klass)
-      ;[].forEach.call(elems, function (el) {
-        el.classList.remove(remove)
-      })
+    ;[].forEach.call(elems, function (el) {
+      el.classList.remove(remove)
+    })
   }
 
   // create element
@@ -83,16 +83,15 @@ export default function (mind: MindElixirInstance) {
   )
   const imgDiv = createDiv(
     'nm-img',
-    `${i18n[locale].img}<input class="nm-img" tabindex="-1" />`
+    `${i18n[locale].img}<div class="img-container"></div>`
   )
   const fileDiv = createDiv(
     'nm-file',
-    `${i18n[locale].file}<input class="nm-file" tabindex="-1" />`
+    `${i18n[locale].file}<div class="file-container"></div>`
   )
   const memoDiv = createDiv(
     'nm-memo',
-    `${i18n[locale].memo || 'Memo'
-    }<textarea class="nm-memo" rows="4" tabindex="-1" />`
+    `${i18n[locale].memo || 'Memo'}<textarea class="nm-memo" rows="4" tabindex="-1" />`
   )
 
   // create container
@@ -122,8 +121,8 @@ export default function (mind: MindElixirInstance) {
   const tagInput: HTMLInputElement = mind.container.querySelector('.nm-tag')
   const iconInput: HTMLInputElement = mind.container.querySelector('.nm-icon')
   const urlInput: HTMLInputElement = mind.container.querySelector('.nm-url')
-  const imgInput: HTMLInputElement = mind.container.querySelector('.nm-img') //用户上传的图片
-  const fileInput: HTMLInputElement = mind.container.querySelector('.nm-file')  //用户上传的文件
+  const imgContainer: HTMLElement = mind.container.querySelector('.img-container')
+  const fileContainer: HTMLElement = mind.container.querySelector('.file-container')
   const memoInput: HTMLInputElement = mind.container.querySelector('.nm-memo')
 
   // handle input and button click
@@ -168,7 +167,7 @@ export default function (mind: MindElixirInstance) {
     }
   }
   Array.from(sizeSelector).map((dom) => {
-    ; (dom as HTMLElement).onclick = (e) => {
+    ;(dom as HTMLElement).onclick = (e) => {
       clearSelect('.size', 'size-selected')
       const size = e.currentTarget as HTMLElement
       size.className = 'size size-selected'
@@ -207,13 +206,35 @@ export default function (mind: MindElixirInstance) {
     if (!mind.currentNode) return
     mind.reshapeNode(mind.currentNode, { hyperLink: e.target.value })
   }
-  imgInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
+  imgContainer.onclick = (e) => {
     if (!mind.currentNode) return
-    // mind.reshapeNode(mind.currentNode, { hyperLink: e.target.value })
+    const nodeObj = mind.currentNode.nodeObj
+    if (e.target.classList.contains('remove-btn')) {
+      // Remove image
+      mind.reshapeNode(mind.currentNode, { image: null })
+      imgContainer.innerHTML = `<button class="upload-btn">Upload Image</button>`
+    } else if (e.target.classList.contains('file-link')) {
+      // Open image in a new tab
+      window.open(e.target.dataset.url, '_blank')
+    } else {
+      // Trigger file input for image upload
+      mind.upload() //调用上传方法
+    }
   }
-  fileInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
+  fileContainer.onclick = (e) => {
     if (!mind.currentNode) return
-    // mind.reshapeNode(mind.currentNode, { hyperLink: e.target.value })
+    const nodeObj = mind.currentNode.nodeObj
+    if (e.target.classList.contains('remove-btn')) {
+      // Remove file
+      mind.reshapeNode(mind.currentNode, { file: null })
+      fileContainer.innerHTML = `<button class="upload-btn">Upload File</button>`
+    } else if (e.target.classList.contains('file-link')) {
+      // Open file in a new tab
+      window.open(e.target.dataset.url, '_blank')
+    } else {
+      // Trigger file input for file upload
+      mind.upload() //调用上传方法
+    }
   }
   memoInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
     if (!mind.currentNode) return
@@ -274,8 +295,12 @@ export default function (mind: MindElixirInstance) {
       iconInput.value = ''
     }
     urlInput.value = nodeObj.hyperLink || ''
-    imgInput.value = nodeObj.image?.name || ''
-    fileInput.value = nodeObj.file?.name || ''
+    imgContainer.innerHTML = nodeObj.image
+    ? `<span class="file-link" data-url="${nodeObj.image.url}">${nodeObj.image.name}</span> <button class="remove-btn">x</button>`
+    : `<button class="upload-btn">Upload Image</button>`
+  fileContainer.innerHTML = nodeObj.file
+    ? `<span class="file-link" data-url="${nodeObj.file.url}">${nodeObj.file.name}</span> <button class="remove-btn">x</button>`
+    : `<button class="upload-btn">Upload File</button>`
     memoInput.value = nodeObj.memo || ''
   })
 }

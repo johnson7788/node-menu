@@ -50,6 +50,11 @@ const options = {
   primaryLinkStyle: 1,
   primaryNodeVerticalGap: 15, // 25
   primaryNodeHorizontalGap: 15, // 65
+  apiInterface: {
+    singleNode: false, //生成单个节点
+    answerAPI: "http://localhost:5556/mind/answer",
+    uploadAPI: "http://localhost:5556/mind/upload_file", //上传文件和图片
+  }
 }
 
 const mind = new MindElixir(options)
@@ -61,7 +66,7 @@ function sleep() {
     setTimeout(() => res(), 1000)
   })
 }
-console.log('test E function', E('bd4313fbac40284b'))
+console.log('test E function', MindElixir.E('bd4313fbac40284b'))
 window.currentOperation = null
 mind.bus.addListener('operation', (operation) => {
   console.log(operation)
