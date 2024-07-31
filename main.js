@@ -1,5 +1,5 @@
-import MindElixir, { E } from 'mind-elixir'
-import example from 'mind-elixir/dist/example1'
+import MindElixir from 'mind-elixir'
+import example from 'mind-elixir/example'
 
 import nodeMenu from './nodeMenu'
 // import nodeMenu from '@mind-elixir/plugin-name'
