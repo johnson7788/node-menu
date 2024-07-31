@@ -17,6 +17,8 @@ const cn = {
   tagsSeparate: '多个标签半角逗号分隔',
   iconsSeparate: '多个图标半角逗号分隔',
   url: 'URL',
+  img: '图片',
+  file: '文件',
 }
 export default {
   cn,
@@ -40,6 +42,8 @@ export default {
     tagsSeparate: '多個標簽半角逗號分隔',
     iconsSeparate: '多個圖標半角逗號分隔',
     url: 'URL',
+    img: '图片',
+    file: '文件',
   },
   en: {
     addChild: 'Add child',
@@ -60,6 +64,8 @@ export default {
     tagsSeparate: 'Separate tags by comma',
     iconsSeparate: 'Separate icons by comma',
     url: 'URL',
+    img: 'IMG',
+    file: 'FILE',
   },
   ru: {
     addChild: 'Добавить дочерний элемент',
@@ -78,6 +84,9 @@ export default {
     icon: 'Иконка',
     tagsSeparate: 'Разделяйте теги запятой',
     iconsSeparate: 'Разделяйте иконки запятой',
+    url: 'URL',
+    img: 'IMG',
+    file: 'FILE',
   },
   ja: {
     addChild: '子ノードを追加する',
@@ -98,6 +107,8 @@ export default {
     tagsSeparate: '複数タグはカンマ区切り',
     iconsSeparate: '複数アイコンはカンマ区切り',
     url: 'URL',
+    img: 'IMG',
+    file: 'FILE',
   },
   pt: {
     addChild: 'Adicionar item filho',
@@ -118,5 +129,7 @@ export default {
     tagsSeparate: 'Separe tags por virgula',
     iconsSeparate: 'Separe icones por virgula',
     url: 'URL',
+    img: 'IMG',
+    file: 'FILE',
   },
 }

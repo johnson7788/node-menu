@@ -35,9 +35,9 @@ export default function (mind: MindElixirInstance) {
   console.log('install node menu')
   function clearSelect(klass, remove) {
     const elems = mind.container.querySelectorAll(klass)
-    ;[].forEach.call(elems, function (el) {
-      el.classList.remove(remove)
-    })
+      ;[].forEach.call(elems, function (el) {
+        el.classList.remove(remove)
+      })
   }
 
   // create element
@@ -81,11 +81,18 @@ export default function (mind: MindElixirInstance) {
     'nm-url',
     `${i18n[locale].url}<input class="nm-url" tabindex="-1" />`
   )
+  const imgDiv = createDiv(
+    'nm-img',
+    `${i18n[locale].img}<input class="nm-img" tabindex="-1" />`
+  )
+  const fileDiv = createDiv(
+    'nm-file',
+    `${i18n[locale].file}<input class="nm-file" tabindex="-1" />`
+  )
   const memoDiv = createDiv(
     'nm-memo',
-    `${
-      i18n[locale].memo || 'Memo'
-    }<textarea class="nm-memo" rows="5" tabindex="-1" />`
+    `${i18n[locale].memo || 'Memo'
+    }<textarea class="nm-memo" rows="4" tabindex="-1" />`
   )
 
   // create container
@@ -100,6 +107,8 @@ export default function (mind: MindElixirInstance) {
   menuContainer.appendChild(tagDiv)
   menuContainer.appendChild(iconDiv)
   menuContainer.appendChild(urlDiv)
+  menuContainer.appendChild(imgDiv)
+  menuContainer.appendChild(fileDiv)
   menuContainer.appendChild(memoDiv)
   menuContainer.hidden = true
   mind.container.append(menuContainer)
@@ -113,6 +122,8 @@ export default function (mind: MindElixirInstance) {
   const tagInput: HTMLInputElement = mind.container.querySelector('.nm-tag')
   const iconInput: HTMLInputElement = mind.container.querySelector('.nm-icon')
   const urlInput: HTMLInputElement = mind.container.querySelector('.nm-url')
+  const imgInput: HTMLInputElement = mind.container.querySelector('.nm-img') //用户上传的图片
+  const fileInput: HTMLInputElement = mind.container.querySelector('.nm-file')  //用户上传的文件
   const memoInput: HTMLInputElement = mind.container.querySelector('.nm-memo')
 
   // handle input and button click
@@ -157,7 +168,7 @@ export default function (mind: MindElixirInstance) {
     }
   }
   Array.from(sizeSelector).map((dom) => {
-    ;(dom as HTMLElement).onclick = (e) => {
+    ; (dom as HTMLElement).onclick = (e) => {
       clearSelect('.size', 'size-selected')
       const size = e.currentTarget as HTMLElement
       size.className = 'size size-selected'
@@ -195,6 +206,14 @@ export default function (mind: MindElixirInstance) {
   urlInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
     if (!mind.currentNode) return
     mind.reshapeNode(mind.currentNode, { hyperLink: e.target.value })
+  }
+  imgInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
+    if (!mind.currentNode) return
+    // mind.reshapeNode(mind.currentNode, { hyperLink: e.target.value })
+  }
+  fileInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
+    if (!mind.currentNode) return
+    // mind.reshapeNode(mind.currentNode, { hyperLink: e.target.value })
   }
   memoInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
     if (!mind.currentNode) return
@@ -255,6 +274,8 @@ export default function (mind: MindElixirInstance) {
       iconInput.value = ''
     }
     urlInput.value = nodeObj.hyperLink || ''
+    imgInput.value = nodeObj.image?.name || ''
+    fileInput.value = nodeObj.file?.name || ''
     memoInput.value = nodeObj.memo || ''
   })
 }
