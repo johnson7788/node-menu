@@ -35,9 +35,9 @@ export default function (mind: MindElixirInstance) {
   console.log('install node menu')
   function clearSelect(klass, remove) {
     const elems = mind.container.querySelectorAll(klass)
-    ;[].forEach.call(elems, function (el) {
-      el.classList.remove(remove)
-    })
+      ;[].forEach.call(elems, function (el) {
+        el.classList.remove(remove)
+      })
   }
 
   // create element
@@ -83,11 +83,11 @@ export default function (mind: MindElixirInstance) {
   )
   const imgDiv = createDiv(
     'nm-img',
-    `${i18n[locale].img}<div class="img-container"></div>`
+    `${i18n[locale].img}<div class="img-container"></div><button class="link-btn">关联图片</button>`
   )
   const fileDiv = createDiv(
     'nm-file',
-    `${i18n[locale].file}<div class="file-container"></div>`
+    `${i18n[locale].file}<div class="file-container"></div><button class="link-btn">关联文件</button>`
   )
   const memoDiv = createDiv(
     'nm-memo',
@@ -124,10 +124,74 @@ export default function (mind: MindElixirInstance) {
   const imgContainer: HTMLElement = mind.container.querySelector('.img-container')
   const fileContainer: HTMLElement = mind.container.querySelector('.file-container')
   const memoInput: HTMLInputElement = mind.container.querySelector('.nm-memo')
-
+  //图片或者文件的点击按钮
+  const imgLinkBtn: HTMLElement = imgDiv.querySelector('.link-btn');
+  const fileLinkBtn: HTMLElement = fileDiv.querySelector('.link-btn');
   // handle input and button click
   let bgOrFont
   const E = mind.findEle
+
+  async function fetchMindFileImageList() {
+    //获取后台的思维导图，文件和图片列表
+    let headers = {};
+  
+    if (!mind.apiInterface.headerToken) {
+      console.warn('Mind COREL No headerToken found in mind config');
+    } else {
+      headers = {
+        'Authorization': `Bearer ${mind.apiInterface.headerToken}`,
+      };
+    }
+  
+    const listAPI: string = mind.apiInterface.listAPI;
+    try {
+      const response = await fetch(listAPI, {
+        method: 'GET',
+        headers: headers,
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('API response:', data);
+  
+      if (data.code === 0) {
+        console.log(data.data)
+        console.timeEnd('list');
+      } else {
+        alert(`Failed to fetch data from the API, ${data.msg}`);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert(`Failed to fetch data from the API, ${mind.apiInterface.listAPI}`);
+    }
+  }
+  
+
+  async function toggleMenuContainer(type: 'image' | 'file') {
+    // 切换图片列表或文件列表
+    await fetchMindFileImageList()
+    if (type === 'image') {
+      // 显示图片列表
+      console.log('Display image list for linking');
+      // 示例：可以弹出一个图片列表供用户选择
+    } else if (type === 'file') {
+      // 显示文件列表
+      console.log('Display file list for linking');
+      // 示例：可以弹出一个文件列表供用户选择
+    }
+  }
+
+  imgLinkBtn.onclick = async () => {
+    await toggleMenuContainer('image');
+  };
+
+  fileLinkBtn.onclick = async () => {
+    await toggleMenuContainer('file');
+  };
+
   menuContainer.onclick = (e) => {
     if (!mind.currentNode) return
     const nodeObj = mind.currentNode.nodeObj
@@ -167,7 +231,7 @@ export default function (mind: MindElixirInstance) {
     }
   }
   Array.from(sizeSelector).map((dom) => {
-    ;(dom as HTMLElement).onclick = (e) => {
+    ; (dom as HTMLElement).onclick = (e) => {
       clearSelect('.size', 'size-selected')
       const size = e.currentTarget as HTMLElement
       size.className = 'size size-selected'
@@ -206,11 +270,28 @@ export default function (mind: MindElixirInstance) {
     if (!mind.currentNode) return
     mind.reshapeNode(mind.currentNode, { hyperLink: e.target.value })
   }
-  imgContainer.onclick = (e) => {
+  // 更新视图函数，用于重新渲染 imgContainer 和 fileContainer, 暂时不知道怎么用
+  function updateView() {
+    if (!mind.currentNode) return;
+    const nodeObj = mind.currentNode.nodeObj;
+
+    // 更新 imgContainer
+    imgContainer.innerHTML = nodeObj.image
+      ? `<span class="file-link" data-url="${nodeObj.image.url}">${nodeObj.image.name}</span> <button class="remove-btn">x</button>`
+      : `<button class="upload-btn">Upload Image</button>`;
+
+    // 更新 fileContainer
+    fileContainer.innerHTML = nodeObj.file
+      ? `<span class="file-link" data-url="${nodeObj.file.url}">${nodeObj.file.name}</span> <button class="remove-btn">x</button>`
+      : `<button class="upload-btn">Upload File</button>`;
+  }
+
+  imgContainer.onclick = async (e) => {
     if (!mind.currentNode) return
     const nodeObj = mind.currentNode.nodeObj
     if (e.target.classList.contains('remove-btn')) {
       // Remove image
+      mind.deleteFile(nodeObj.image.name)
       mind.reshapeNode(mind.currentNode, { image: null })
       imgContainer.innerHTML = `<button class="upload-btn">Upload Image</button>`
     } else if (e.target.classList.contains('file-link')) {
@@ -218,14 +299,15 @@ export default function (mind: MindElixirInstance) {
       window.open(e.target.dataset.url, '_blank')
     } else {
       // Trigger file input for image upload
-      mind.upload() //调用上传方法
+      await mind.upload() //调用上传方法
     }
   }
-  fileContainer.onclick = (e) => {
+  fileContainer.onclick = async (e) => {
     if (!mind.currentNode) return
     const nodeObj = mind.currentNode.nodeObj
     if (e.target.classList.contains('remove-btn')) {
       // Remove file
+      mind.deleteFile(nodeObj.file.name)
       mind.reshapeNode(mind.currentNode, { file: null })
       fileContainer.innerHTML = `<button class="upload-btn">Upload File</button>`
     } else if (e.target.classList.contains('file-link')) {
@@ -233,7 +315,7 @@ export default function (mind: MindElixirInstance) {
       window.open(e.target.dataset.url, '_blank')
     } else {
       // Trigger file input for file upload
-      mind.upload() //调用上传方法
+      await mind.upload() //调用上传方法
     }
   }
   memoInput.onchange = (e: InputEvent & { target: HTMLInputElement }) => {
@@ -296,11 +378,11 @@ export default function (mind: MindElixirInstance) {
     }
     urlInput.value = nodeObj.hyperLink || ''
     imgContainer.innerHTML = nodeObj.image
-    ? `<span class="file-link" data-url="${nodeObj.image.url}">${nodeObj.image.name}</span> <button class="remove-btn">x</button>`
-    : `<button class="upload-btn">Upload Image</button>`
-  fileContainer.innerHTML = nodeObj.file
-    ? `<span class="file-link" data-url="${nodeObj.file.url}">${nodeObj.file.name}</span> <button class="remove-btn">x</button>`
-    : `<button class="upload-btn">Upload File</button>`
+      ? `<span class="file-link" data-url="${nodeObj.image.url}">${nodeObj.image.name}</span> <button class="remove-btn">x</button>`
+      : `<button class="upload-btn">Upload Image</button>`
+    fileContainer.innerHTML = nodeObj.file
+      ? `<span class="file-link" data-url="${nodeObj.file.url}">${nodeObj.file.name}</span> <button class="remove-btn">x</button>`
+      : `<button class="upload-btn">Upload File</button>`
     memoInput.value = nodeObj.memo || ''
   })
 }
