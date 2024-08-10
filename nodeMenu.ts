@@ -134,7 +134,7 @@ export default function (mind: MindElixirInstance) {
   async function fetchMindFileImageList() {
     //获取后台的思维导图，文件和图片列表
     let headers = {};
-  
+
     if (!mind.apiInterface.headerToken) {
       console.warn('Mind COREL No headerToken found in mind config');
     } else {
@@ -142,21 +142,26 @@ export default function (mind: MindElixirInstance) {
         'Authorization': `Bearer ${mind.apiInterface.headerToken}`,
       };
     }
-  
+
     const listAPI: string = mind.apiInterface.listAPI;
     try {
       const response = await fetch(listAPI, {
         method: 'GET',
         headers: headers,
       });
-  
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // 检查是否为401 UNAUTHORIZED错误
+        if (response.status === 401) {
+          alert('Unauthorized access! Please check your login status or token.');
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
-  
+
       const data = await response.json();
       console.log('API response:', data);
-  
+
       if (data.code === 0) {
         console.log(data.data)
         console.timeEnd('list');
@@ -168,7 +173,7 @@ export default function (mind: MindElixirInstance) {
       alert(`Failed to fetch data from the API, ${mind.apiInterface.listAPI}`);
     }
   }
-  
+
 
   async function toggleMenuContainer(type: 'image' | 'file') {
     // 切换图片列表或文件列表
