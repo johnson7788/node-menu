@@ -83,22 +83,30 @@ export default function (mind: MindElixirInstance) {
   )
   const imgDiv = createDiv(
     'nm-img',
-    `${i18n[locale].img}<div class="img-container"></div><button class="link-btn">关联图片</button>`
+    `${i18n[locale].img}<div class="img-container"></div><button id="link-btn" class="link-btn">关联图片</button>`
   )
   const fileDiv = createDiv(
     'nm-file',
-    `${i18n[locale].file}<div class="file-container"></div><button class="link-btn">关联文件</button>`
+    `${i18n[locale].file}<div class="file-container"></div><button id="link-btn" class="link-btn">关联文件</button>`
   )
   const memoDiv = createDiv(
     'nm-memo',
     `${i18n[locale].memo || 'Memo'}<textarea class="nm-memo" rows="4" tabindex="-1" />`
   )
+  const fileImgMindDiv = createDiv(
+    'nm-file-img-mind',
+    `<ul class="nm-file-img-mind"></ul>`
+  )
 
   // create container
   const menuContainer = document.createElement('div')
   menuContainer.className = 'node-menu'
+  //close-file-img-mind默认是隐藏状态
   menuContainer.innerHTML = `
-  <div class="button-container"><svg class="icon" aria-hidden="true">
+  <div id="close-container" class="button-container"><svg class="icon" aria-hidden="true">
+  <use xlink:href="#icon-close"></use>
+  </svg></div>
+  <div id="close-file-img-mind" class="close-file-img-mind" hidden><svg class="icon" aria-hidden="true">
   <use xlink:href="#icon-close"></use>
   </svg></div>
   `
@@ -109,14 +117,14 @@ export default function (mind: MindElixirInstance) {
   menuContainer.appendChild(imgDiv)
   menuContainer.appendChild(fileDiv)
   menuContainer.appendChild(memoDiv)
+  menuContainer.appendChild(fileImgMindDiv)
   menuContainer.hidden = true
   mind.container.append(menuContainer)
 
   // query input element
   const sizeSelector = menuContainer.querySelectorAll('.size')
   const bold: HTMLElement = menuContainer.querySelector('.bold')
-  const buttonContainer: HTMLElement =
-    menuContainer.querySelector('.button-container')
+  const buttonContainer: HTMLElement =menuContainer.querySelector('.button-container')
   const fontBtn: HTMLElement = menuContainer.querySelector('.font')
   const tagInput: HTMLInputElement = mind.container.querySelector('.nm-tag')
   const iconInput: HTMLInputElement = mind.container.querySelector('.nm-icon')
@@ -127,6 +135,9 @@ export default function (mind: MindElixirInstance) {
   //图片或者文件的点击按钮
   const imgLinkBtn: HTMLElement = imgDiv.querySelector('.link-btn');
   const fileLinkBtn: HTMLElement = fileDiv.querySelector('.link-btn');
+  const fileImgMindList: HTMLElement = fileImgMindDiv.querySelector('.nm-file-img-mind');
+  // 关闭图片文件列表的按钮
+  const closeFileImgMindBtn: HTMLElement = menuContainer.querySelector('.close-file-img-mind');
   // handle input and button click
   let bgOrFont
   const E = mind.findEle
@@ -161,10 +172,8 @@ export default function (mind: MindElixirInstance) {
 
       const data = await response.json();
       console.log('API response:', data);
-
       if (data.code === 0) {
-        console.log(data.data)
-        console.timeEnd('list');
+        return data.data;
       } else {
         alert(`Failed to fetch data from the API, ${data.msg}`);
       }
@@ -174,28 +183,97 @@ export default function (mind: MindElixirInstance) {
     }
   }
 
+  function showIdContainer(id_names) {
+    // id_names 是字符串数组，代表需要显示的元素的 id
+    // 获取 node-menu 元素
+    const nodeMenu = document.querySelector('.node-menu');
+    
+    if (nodeMenu) {
+      // 获取 node-menu 下的所有直接子代元素
+      const children = nodeMenu.children;
+      
+      // 遍历每个子代元素
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        
+        // 判断子代元素的 id 是否在 id_names 数组中
+        const hasId = id_names.includes(child.id);
+        
+        if (hasId) {
+          child.removeAttribute('hidden');
+        } else {
+          child.setAttribute('hidden', '');
+        }
+      }
+    }
+  }
 
-  async function toggleMenuContainer(type: 'image' | 'file') {
+  function hiddenIdContainer(id_names) {
+    // id_names 是字符串数组，代表需要隐藏的元素的 id
+    // 获取 node-menu 元素
+    const nodeMenu = document.querySelector('.node-menu');
+    
+    if (nodeMenu) {
+      // 获取 node-menu 下的所有直接子代元素
+      const children = nodeMenu.children;
+      
+      // 遍历每个子代元素
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        
+        // 判断子代元素的 id 是否在 id_names 数组中
+        const hasId = id_names.includes(child.id);
+        
+        if (hasId) {
+          child.setAttribute('hidden', '');
+        } else {
+          child.removeAttribute('hidden');
+        }
+      }
+    }
+  }
+  
+  function updateFileImgMindList(list_data: any, type: 'image' | 'file' | 'mind') {
+    fileImgMindList.innerHTML = ''; // 清空列表
+    list_data.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item.name;
+      // 添加点击事件
+      li.addEventListener('click', () => {
+        // 根据不同的类型，添加不同的操作
+
+        console.log(item.path);
+      });
+      fileImgMindList.appendChild(li);
+    });
+  }
+
+
+  async function toggleMenuContainer(type: 'image' | 'file' | 'mind') {
     // 切换图片列表或文件列表
-    await fetchMindFileImageList()
+    const data = await fetchMindFileImageList()
     if (type === 'image') {
       // 显示图片列表
       console.log('Display image list for linking');
+      imgLinkBtn.setAttribute('hidden', '');
+      showIdContainer(['close-file-img-mind','nm-img','nm-file-img-mind'])
+      updateFileImgMindList(data.images)
       // 示例：可以弹出一个图片列表供用户选择
     } else if (type === 'file') {
       // 显示文件列表
       console.log('Display file list for linking');
       // 示例：可以弹出一个文件列表供用户选择
+    } else if (type === 'mind') {
+      // 显示文件列表
+      console.log('Display mind list for linking');
+      // 示例：可以弹出一个文件列表供用户选择
     }
   }
 
-  imgLinkBtn.onclick = async () => {
-    await toggleMenuContainer('image');
-  };
-
-  fileLinkBtn.onclick = async () => {
-    await toggleMenuContainer('file');
-  };
+  closeFileImgMindBtn.onclick = () => {
+    // 隐藏图片文件列表
+    hiddenIdContainer(['close-file-img-mind','nm-file-img-mind'])
+  }
 
   menuContainer.onclick = (e) => {
     if (!mind.currentNode) return
@@ -245,6 +323,7 @@ export default function (mind: MindElixirInstance) {
       })
     }
   })
+  //粗体
   bold.onclick = (e: MouseEvent & { currentTarget: Element }) => {
     let fontWeight = ''
     if (mind.currentNode.nodeObj?.style?.fontWeight === 'bold') {
@@ -291,6 +370,15 @@ export default function (mind: MindElixirInstance) {
       : `<button class="upload-btn">Upload File</button>`;
   }
 
+  //图片关联按钮
+  imgLinkBtn.onclick = async (e) => {
+    await toggleMenuContainer('image');
+  };
+
+  fileLinkBtn.onclick = async (e) => {
+    await toggleMenuContainer('file');
+  };
+
   imgContainer.onclick = async (e) => {
     if (!mind.currentNode) return
     const nodeObj = mind.currentNode.nodeObj
@@ -331,7 +419,9 @@ export default function (mind: MindElixirInstance) {
       obj: mind.currentNode.nodeObj,
     })
   }
+
   let state = 'open'
+  //开关状态
   buttonContainer.onclick = (e) => {
     menuContainer.classList.toggle('close')
     if (state === 'open') {
