@@ -262,17 +262,21 @@ export default function (mind: MindElixirInstance) {
           hiddenIdContainer(['close-file-img-mind','nm-file-img-mind'])
           //显示图片关联按钮
           imgLinkBtn.removeAttribute('hidden');
+          //更新菜单中的显示内容
+          imgContainer.innerHTML = `<span class="file-link" data-url="${imgUrl}">${item.name}</span> <button class="remove-btn">x</button>`
         } else if (type === 'file') {
           const fileUrl = `${baseUrl}${item.path}`;
           mind.reshapeNode(mind.currentNode, { file: {url: fileUrl, name: item.name} })
           hiddenIdContainer(['close-file-img-mind','nm-file-img-mind'])
           fileLinkBtn.removeAttribute('hidden');
+          fileContainer.innerHTML = `<span class="file-link" data-url="${fileUrl}">${item.name}</span> <button class="remove-btn">x</button>`
         } else if (type === 'mind') {
           const mindUrl = `${baseUrl}${item.path}`;
           // 关联思维导图的信息
           mind.reshapeNode(mind.currentNode, { mind: {url: mindUrl, name: item.name, id: item.content._id} })
           hiddenIdContainer(['close-file-img-mind','nm-file-img-mind'])
           mindLinkBtn.removeAttribute('hidden');
+          mindContainer.innerHTML = `<span class="file-link" data-url="${mindUrl}">${item.name}</span> <button class="remove-btn">x</button>`
         }
         console.log(item.path);
       });
@@ -428,7 +432,7 @@ export default function (mind: MindElixirInstance) {
     if (e.target.classList.contains('remove-btn')) {
       // Remove image
       mind.reshapeNode(mind.currentNode, { mind: null })
-      // mindContainer.innerHTML = `<button class="upload-btn">Upload Image</button>`
+      mindContainer.innerHTML = ``
     } else if (e.target.classList.contains('file-link')) {
       // Open image in a new tab
       window.open(e.target.dataset.url, '_blank')
@@ -443,7 +447,7 @@ export default function (mind: MindElixirInstance) {
     const nodeObj = mind.currentNode.nodeObj
     if (e.target.classList.contains('remove-btn')) {
       // Remove image
-      mind.deleteFile(nodeObj.image.name)
+      // mind.deleteFile(nodeObj.image.name) //不删除文件了，只删除关联
       mind.reshapeNode(mind.currentNode, { image: null })
       imgContainer.innerHTML = `<button class="upload-btn">Upload Image</button>`
     } else if (e.target.classList.contains('file-link')) {
@@ -460,7 +464,7 @@ export default function (mind: MindElixirInstance) {
     const nodeObj = mind.currentNode.nodeObj
     if (e.target.classList.contains('remove-btn')) {
       // Remove file
-      // mind.deleteFile(nodeObj.file.name) /不删除文件了，只删除关联
+      // mind.deleteFile(nodeObj.file.name) //不删除文件了，只删除关联
       mind.reshapeNode(mind.currentNode, { file: null })
       fileContainer.innerHTML = `<button class="upload-btn">Upload File</button>`
     } else if (e.target.classList.contains('file-link')) {
