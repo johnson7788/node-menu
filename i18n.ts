@@ -19,6 +19,10 @@ const cn = {
   url: 'URL',
   img: '图片',
   file: '文件',
+  mind: 'MIND',
+  associateImg: '关联图片',
+  associateFile: '关联文件',
+  associateMind: '关联MIND',
 }
 export default {
   cn,
@@ -44,6 +48,10 @@ export default {
     url: 'URL',
     img: '图片',
     file: '文件',
+    mind: 'MIND',
+    associateImg: '关联图片',
+    associateFile: '关联文件',
+    associateMind: '关联MIND',
   },
   en: {
     addChild: 'Add child',
@@ -66,6 +74,10 @@ export default {
     url: 'URL',
     img: 'IMG',
     file: 'FILE',
+    mind: 'MIND',
+    associateImg: 'Associate IMG',
+    associateFile: 'Associate FILE',
+    associateMind: 'Associate MIND',
   },
   ru: {
     addChild: 'Добавить дочерний элемент',
@@ -87,6 +99,10 @@ export default {
     url: 'URL',
     img: 'IMG',
     file: 'FILE',
+    mind: 'MIND',
+    associateImg: 'Associate IMG',
+    associateFile: 'Associate FILE',
+    associateMind: 'Associate MIND',
   },
   ja: {
     addChild: '子ノードを追加する',
@@ -109,6 +125,10 @@ export default {
     url: 'URL',
     img: 'IMG',
     file: 'FILE',
+    mind: 'MIND',
+    associateImg: 'Associate IMG',
+    associateFile: 'Associate FILE',
+    associateMind: 'Associate MIND',
   },
   pt: {
     addChild: 'Adicionar item filho',
@@ -131,5 +151,9 @@ export default {
     url: 'URL',
     img: 'IMG',
     file: 'FILE',
+    mind: 'MIND',
+    associateImg: 'Associate IMG',
+    associateFile: 'Associate FILE',
+    associateMind: 'Associate MIND',
   },
 }

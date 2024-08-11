@@ -31,6 +31,11 @@ const colorList = [
   '#2ecc71',
 ]
 
+const getBaseUrl = (url: string): string => {
+  const { protocol, hostname, port } = new URL(url);
+  return `${protocol}//${hostname}${port ? `:${port}` : ''}/`;
+};
+
 export default function (mind: MindElixirInstance) {
   console.log('install node menu')
   function clearSelect(klass, remove) {
@@ -83,11 +88,16 @@ export default function (mind: MindElixirInstance) {
   )
   const imgDiv = createDiv(
     'nm-img',
-    `${i18n[locale].img}<div class="img-container"></div><button id="link-btn" class="link-btn">关联图片</button>`
+    `${i18n[locale].img}<div class="img-container"></div><button id="link-btn" class="link-btn">${i18n[locale].associateImg}</button>`
   )
   const fileDiv = createDiv(
     'nm-file',
-    `${i18n[locale].file}<div class="file-container"></div><button id="link-btn" class="link-btn">关联文件</button>`
+    `${i18n[locale].file}<div class="file-container"></div><button id="link-btn" class="link-btn">${i18n[locale].associateFile}</button>`
+  )
+  //关联其它思维导图
+  const mindDiv = createDiv(
+    'nm-mind',
+    `${i18n[locale].mind}<div class="mind-container"></div></div><button id="link-btn" class="link-btn">${i18n[locale].associateMind}</button>`
   )
   const memoDiv = createDiv(
     'nm-memo',
@@ -116,6 +126,7 @@ export default function (mind: MindElixirInstance) {
   menuContainer.appendChild(urlDiv)
   menuContainer.appendChild(imgDiv)
   menuContainer.appendChild(fileDiv)
+  menuContainer.appendChild(mindDiv)
   menuContainer.appendChild(memoDiv)
   menuContainer.appendChild(fileImgMindDiv)
   menuContainer.hidden = true
@@ -131,10 +142,12 @@ export default function (mind: MindElixirInstance) {
   const urlInput: HTMLInputElement = mind.container.querySelector('.nm-url')
   const imgContainer: HTMLElement = mind.container.querySelector('.img-container')
   const fileContainer: HTMLElement = mind.container.querySelector('.file-container')
+  const mindContainer: HTMLElement = mind.container.querySelector('.mind-container')
   const memoInput: HTMLInputElement = mind.container.querySelector('.nm-memo')
   //图片或者文件的点击按钮
   const imgLinkBtn: HTMLElement = imgDiv.querySelector('.link-btn');
   const fileLinkBtn: HTMLElement = fileDiv.querySelector('.link-btn');
+  const mindLinkBtn: HTMLElement = mindDiv.querySelector('.link-btn');
   const fileImgMindList: HTMLElement = fileImgMindDiv.querySelector('.nm-file-img-mind');
   // 关闭图片文件列表的按钮
   const closeFileImgMindBtn: HTMLElement = menuContainer.querySelector('.close-file-img-mind');
@@ -238,10 +251,29 @@ export default function (mind: MindElixirInstance) {
     list_data.forEach(item => {
       const li = document.createElement('li');
       li.textContent = item.name;
+      const baseUrl = getBaseUrl(mind.apiInterface.uploadAPI);
       // 添加点击事件
       li.addEventListener('click', () => {
         // 根据不同的类型，添加不同的操作
-
+        if (type === 'image') {
+          const imgUrl = `${baseUrl}${item.path}`;
+          mind.reshapeNode(mind.currentNode, { image: {url: imgUrl, name: item.name, height: 90, width: 90} })
+          //关闭菜单
+          hiddenIdContainer(['close-file-img-mind','nm-file-img-mind'])
+          //显示图片关联按钮
+          imgLinkBtn.removeAttribute('hidden');
+        } else if (type === 'file') {
+          const fileUrl = `${baseUrl}${item.path}`;
+          mind.reshapeNode(mind.currentNode, { file: {url: fileUrl, name: item.name} })
+          hiddenIdContainer(['close-file-img-mind','nm-file-img-mind'])
+          fileLinkBtn.removeAttribute('hidden');
+        } else if (type === 'mind') {
+          const mindUrl = `${baseUrl}${item.path}`;
+          // 关联思维导图的信息
+          mind.reshapeNode(mind.currentNode, { mind: {url: mindUrl, name: item.name, id: item.content._id} })
+          hiddenIdContainer(['close-file-img-mind','nm-file-img-mind'])
+          mindLinkBtn.removeAttribute('hidden');
+        }
         console.log(item.path);
       });
       fileImgMindList.appendChild(li);
@@ -257,14 +289,21 @@ export default function (mind: MindElixirInstance) {
       console.log('Display image list for linking');
       imgLinkBtn.setAttribute('hidden', '');
       showIdContainer(['close-file-img-mind','nm-img','nm-file-img-mind'])
-      updateFileImgMindList(data.images)
+      updateFileImgMindList(data.images, type)
       // 示例：可以弹出一个图片列表供用户选择
     } else if (type === 'file') {
       // 显示文件列表
       console.log('Display file list for linking');
+      fileLinkBtn.setAttribute('hidden', '');
+      showIdContainer(['close-file-img-mind','nm-file','nm-file-img-mind'])
+      updateFileImgMindList(data.files, type)
       // 示例：可以弹出一个文件列表供用户选择
     } else if (type === 'mind') {
-      // 显示文件列表
+      // 显示思维导图的文件列表
+      console.log('Display mind list for linking');
+      mindLinkBtn.setAttribute('hidden', '');
+      showIdContainer(['close-file-img-mind','nm-mind','nm-file-img-mind'])
+      updateFileImgMindList(data.minds, type)
       console.log('Display mind list for linking');
       // 示例：可以弹出一个文件列表供用户选择
     }
@@ -379,6 +418,26 @@ export default function (mind: MindElixirInstance) {
     await toggleMenuContainer('file');
   };
 
+  mindLinkBtn.onclick = async (e) => {
+    await toggleMenuContainer('mind');
+  };
+
+  mindContainer.onclick = async (e) => {
+    if (!mind.currentNode) return
+    const nodeObj = mind.currentNode.nodeObj
+    if (e.target.classList.contains('remove-btn')) {
+      // Remove image
+      mind.reshapeNode(mind.currentNode, { mind: null })
+      // mindContainer.innerHTML = `<button class="upload-btn">Upload Image</button>`
+    } else if (e.target.classList.contains('file-link')) {
+      // Open image in a new tab
+      window.open(e.target.dataset.url, '_blank')
+    } else {
+      // Trigger file input for image upload,关联方法？
+      
+    }
+  }
+
   imgContainer.onclick = async (e) => {
     if (!mind.currentNode) return
     const nodeObj = mind.currentNode.nodeObj
@@ -395,12 +454,13 @@ export default function (mind: MindElixirInstance) {
       await mind.upload() //调用上传方法
     }
   }
+
   fileContainer.onclick = async (e) => {
     if (!mind.currentNode) return
     const nodeObj = mind.currentNode.nodeObj
     if (e.target.classList.contains('remove-btn')) {
       // Remove file
-      mind.deleteFile(nodeObj.file.name)
+      // mind.deleteFile(nodeObj.file.name) /不删除文件了，只删除关联
       mind.reshapeNode(mind.currentNode, { file: null })
       fileContainer.innerHTML = `<button class="upload-btn">Upload File</button>`
     } else if (e.target.classList.contains('file-link')) {
@@ -478,6 +538,9 @@ export default function (mind: MindElixirInstance) {
     fileContainer.innerHTML = nodeObj.file
       ? `<span class="file-link" data-url="${nodeObj.file.url}">${nodeObj.file.name}</span> <button class="remove-btn">x</button>`
       : `<button class="upload-btn">Upload File</button>`
+    mindContainer.innerHTML = nodeObj.mind
+      ? `<span class="file-link" data-url="${nodeObj.mind.url}">${nodeObj.mind.name}</span> <button class="remove-btn">x</button>`
+      : ``
     memoInput.value = nodeObj.memo || ''
   })
 }
